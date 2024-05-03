@@ -37,7 +37,6 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 						
 					\Drupal::messenger()->addMessage('Boundaries have changed', 'custom');
 					$geom_type = $entity->get('field_boundaries')->geo_type;
-					\Drupal::messenger()->addMessage($geom_type, 'custom');
 					
 					if ($geom_type == "Polygon" || $geom_type == "MultiPolygon") {
 						
@@ -55,6 +54,7 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 						if ($geom_type == "MultiPolygon") {
 							// To do: loop for each polygon and adding up sizes
 							\Drupal::messenger()->addMessage('Boundaries are a MultiPolygon', 'custom');
+							\Drupal::messenger()->addMessage(serialize($current_boundaries_content), 'custom');
 							$boundaries_in_hectares = 999;
 						}
 						
