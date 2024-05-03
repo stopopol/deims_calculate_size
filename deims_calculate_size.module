@@ -18,15 +18,25 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 	// only called when nodes are saved
 	if ($entity->getEntityTypeId() == 'node') {
 		
-		switch ($entity->getType()) {
+		// that are either sites or locations 
+		if ($entity->getType() == "site" || $entity->getType() == "observation_location") {
+			
+			// boundaries field needs to be filled
+			if ($entity->get('field_boundaries')->getValue()) {
+												
+				$current_boundaries_content = json_decode(\Drupal::service('geofield.geophp')->load($entity->get('field_boundaries')->value)->out('json'));
+				$old_boundaries_content = json_decode(\Drupal::service('geofield.geophp')->load($entity->original->get('field_boundaries')->value)->out('json'));
+				
+				\Drupal::messenger()->addMessage(serialize($current_boundaries_content), 'custom');
+				\Drupal::messenger()->addMessage('I get called 1', 'custom');	
+													
+				// check if boundaries have changed
+				if ($current_boundaries_content != $old_boundaries_content) {
 						
-			// applies only to sites and locations
-			case "site":
-			case "observation_location":
-							
-				// check if boundaries have changed has changed
-				if ($entity->get('field_boundaries')->getValue() != $entity->original->get('field_boundaries')->getValue()) {
-						
+					\Drupal::messenger()->addMessage('I get called 2', 'custom');	
+					
+					// geo_type of boundaries_content returns geom_type
+					
 					$geo = new geoPHP();
 					$mapper = new Spinen\Geometry\Support\TypeMapper();
 					$geometry = new Spinen\Geometry\Geometry($geo, $mapper);
@@ -37,13 +47,13 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 					//$collection = $geometry->parseGeoJson($polygon);
 					// $squareMeters = $collection->getSquareMeters();
 					
-					// \Drupal::messenger()->addMessage('This is a custom message', 'custom');
+					// 
 						
-					$entity->field_size->value = 999; 
+					//$entity->field_size->value = 999; 
 
 				}
-					
-				break;
+			}
+			
 		}
 		
 	}
