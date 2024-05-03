@@ -35,30 +35,31 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 				// check if boundaries have changed from last save
 				if ($current_boundaries_content != $old_boundaries_content) {
 						
-					\Drupal::messenger()->addMessage('Boundaries have changed', 'custom');	
-					
-					$geo = new geoPHP();
-					$mapper = new Spinen\Geometry\Support\TypeMapper();
-					$geometry = new Spinen\Geometry\Geometry($geo, $mapper);
-						
+					\Drupal::messenger()->addMessage('Boundaries have changed', 'custom');
 					$geom_type = $entity->get('field_boundaries')->geo_type;
+					\Drupal::messenger()->addMessage($geom_type, 'custom');
 					
-					if ($geom_type == "polygon") {
-						$collection = $geometry->parseGeoJson($current_boundaries_content);
-						$squareMeters = $collection->getSquareMeters();
-						$boundaries_in_hectares = $squareMeters/10000;
-						$entity->field_size->value = $boundaries_in_hectares;
+					if ($geom_type == "polygon" || $geom_type == "MultiPolygon") {
+						
+						$geo = new geoPHP();
+						$mapper = new Spinen\Geometry\Support\TypeMapper();
+						$geometry = new Spinen\Geometry\Geometry($geo, $mapper);
+						
+						if ($geom_type == "polygon") {
+							\Drupal::messenger()->addMessage('Boundaries are a polygon', 'custom');
+							$collection = $geometry->parseGeoJson($current_boundaries_content);
+							$squareMeters = $collection->getSquareMeters();
+							$boundaries_in_hectares = $squareMeters/10000;
+							$entity->field_size->value = $boundaries_in_hectares;
+						}
+						if ($geom_type == "MultiPolygon") {
+							// To do:
+							\Drupal::messenger()->addMessage('Boundaries are a MultiPolygon', 'custom');
+						}
+						
 					}
-					if ($geom_type = "multipolygon") {
-						// To do:
-					}
-	
-
 				}
 			}
-			
 		}
-		
 	}
-
 }
