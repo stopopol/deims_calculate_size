@@ -57,6 +57,8 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 							\Drupal::messenger()->addMessage('Boundaries are a MultiPolygon', 'custom');
 						}
 						
+						// to do: catch case where size == 0
+						
 					}
 				}
 			}
