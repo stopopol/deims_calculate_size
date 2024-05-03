@@ -28,14 +28,13 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 				$old_boundaries_content = json_decode(\Drupal::service('geofield.geophp')->load($entity->original->get('field_boundaries')->value)->out('json'));
 				
 				\Drupal::messenger()->addMessage(serialize($current_boundaries_content), 'custom');
-				\Drupal::messenger()->addMessage('I get called 1', 'custom');	
+				\Drupal::messenger()->addMessage('Node is either site or location and has boundaries', 'custom');
+				
 													
-				// check if boundaries have changed
+				// check if boundaries have changed from last save
 				if ($current_boundaries_content != $old_boundaries_content) {
 						
-					\Drupal::messenger()->addMessage('I get called 2', 'custom');	
-					
-					// geo_type of boundaries_content returns geom_type
+					\Drupal::messenger()->addMessage('Boundaries have changed', 'custom');	
 					
 					$geo = new geoPHP();
 					$mapper = new Spinen\Geometry\Support\TypeMapper();
@@ -43,6 +42,7 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 						
 					//$geom = geoPHP::load($entity->get('field_boundaries')->getValue(),'wkb');
 					// check for type, if multipolygon loop is needed
+					$geom_type = $entity->get('field_boundaries')->geo_type;
 						
 					//$collection = $geometry->parseGeoJson($polygon);
 					// $squareMeters = $collection->getSquareMeters();
