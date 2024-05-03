@@ -1,0 +1,51 @@
+<?php
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\node\Entity\Node;
+use Drupal\geofield\GeoPHP\GeoPHPInterface;
+use Drupal\Core\Plugin\DefaultPluginManager;
+
+# this code requires laravel geometry: https://github.com/spinen/laravel-geometry
+# install with
+# sudo -HEu www-data php composer require spinen/laravel-geometry
+# https://api.drupal.org/api/drupal/core%21lib%21Drupal%21Core%21Entity%21entity.api.php/function/hook_entity_presave/10
+
+/**
+ * Implements hook_entity_presave().
+ */
+function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface $entity) {
+	
+	// only called when nodes are saved
+	if ($entity->getEntityTypeId() == 'node') {
+		
+		switch ($entity->getType()) {
+						
+			// applies only to sites and locations
+			case "site":
+			case "observation_location":
+							
+				// check if boundaries have changed has changed
+				if ($entity->get('field_boundaries')->getValue() != $entity->original->get('field_boundaries')->getValue()) {
+						
+					$geo = new geoPHP();
+					$mapper = new Spinen\Geometry\Support\TypeMapper();
+					$geometry = new Spinen\Geometry\Geometry($geo, $mapper);
+						
+					//$geom = geoPHP::load($entity->get('field_boundaries')->getValue(),'wkb');
+					// check for type, if multipolygon loop is needed
+						
+					//$collection = $geometry->parseGeoJson($polygon);
+					// $squareMeters = $collection->getSquareMeters();
+					
+					// \Drupal::messenger()->addMessage('This is a custom message', 'custom');
+						
+					$entity->field_size->value = 999; 
+
+				}
+					
+				break;
+		}
+		
+	}
+
+}
