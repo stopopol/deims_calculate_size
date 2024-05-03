@@ -21,14 +21,15 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 		// that are either sites or locations 
 		if ($entity->getType() == "site" || $entity->getType() == "observation_location") {
 			
+			\Drupal::messenger()->addMessage('Node is either site or location', 'custom');
+			
 			// boundaries field needs to be filled
 			if ($entity->get('field_boundaries')->getValue()) {
 												
 				$current_boundaries_content = json_decode(\Drupal::service('geofield.geophp')->load($entity->get('field_boundaries')->value)->out('json'));
 				$old_boundaries_content = json_decode(\Drupal::service('geofield.geophp')->load($entity->original->get('field_boundaries')->value)->out('json'));
 				
-				\Drupal::messenger()->addMessage(serialize($current_boundaries_content), 'custom');
-				\Drupal::messenger()->addMessage('Node is either site or location and has boundaries', 'custom');
+				\Drupal::messenger()->addMessage('and has boundaries', 'custom');
 				
 													
 				// check if boundaries have changed from last save
