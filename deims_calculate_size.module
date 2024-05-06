@@ -44,41 +44,31 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 						$mapper = new Spinen\Geometry\Support\TypeMapper();
 						$geometry = new Spinen\Geometry\Geometry($geo, $mapper);
 						
+						$boundaries_in_hectares = 0;
+						
 						if ($geom_type == "Polygon") {
 							\Drupal::messenger()->addMessage('Boundaries are a Polygon', 'custom');
 							$collection = $geometry->parseGeoJson($current_boundaries_content);
 							$squareMeters = $collection->getSquareMeters();
 							$boundaries_in_hectares = $squareMeters/10000;
-							
 						}
 						
 						if ($geom_type == "MultiPolygon") {
-							// To do: loop for each polygon and adding up sizes
+							
 							\Drupal::messenger()->addMessage('Boundaries are a MultiPolygon', 'custom');
 							
-							$boundaries_in_hectares = 0;
-							
 							$collection = $geometry->parseGeoJson($current_boundaries_content);
-							
-							$polygons = $current_boundaries_content->coordinates;
-				
+											
 							$geojson_multipolygon = $collection->toGeoJson();
 							$geojson_array = json_decode($geojson_multipolygon);
-							\Drupal::messenger()->addMessage(getType($geojson_array), 'custom');
 							
 							$list_of_polygons = $geojson_array->coordinates;
-							$list_of_polygons2 = $geojson_array->coordinates;
-							\Drupal::messenger()->addMessage(getType($list_of_polygons), 'custom');
-							$polygon_array_keys = array_keys($list_of_polygons);					
-					
-							\Drupal::messenger()->addMessage(getType($list_of_polygons[0]), 'custom');
-							
+							$polygon_array_keys = array_keys($list_of_polygons);
+
+							// Loop for each polygon and adding up sizes
 							foreach ($polygon_array_keys as $key) {
-								$key_string = "$key";
+		
 								$current_polygon = $list_of_polygons[$key]; // current polygon is an array
-								
-								// iterate through current polygon to fetch points and construct polygon?
-								
 								$geoJson = '{"type":"Polygon", "coordinates":' . json_encode($current_polygon) . '}';
 								$collection = $geometry->parseGeoJson($geoJson);
 								$squareMeters = $collection->getSquareMeters();
@@ -86,7 +76,6 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 								\Drupal::messenger()->addMessage($geoJson, 'custom');
 								
 								\Drupal::messenger()->addMessage(serialize($current_polygon), 'custom');
-								// i can successfully iterate through the multipolygon and get each polygon
 								
 							}
 							
@@ -96,7 +85,8 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 						}
 						
 						if ($boundaries_in_hectares > 0) {
-							$entity->field_size->value = $boundaries_in_hectares;
+							// round to two digits
+							$entity->field_size->value = round($boundaries_in_hectares,2);
 						}
 												
 					}
