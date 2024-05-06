@@ -57,12 +57,12 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 						$mapper = new Spinen\Geometry\Support\TypeMapper();
 						$geometry = new Spinen\Geometry\Geometry($geo, $mapper);
 						$collection = $geometry->parseGeoJson($current_boundaries_content);
-						$boundaries_in_hectares = 0;
+						$boundaries_in_hectares = 0.00;
 						
 						if ($geom_type == "Polygon") {
 							\Drupal::messenger()->addMessage('Boundaries are a Polygon', 'custom');
-							$squareMeters = $collection->getSquareMeters();
-							$boundaries_in_hectares = $squareMeters/10000;
+							$squareMeters = floatval($collection->getSquareMeters());
+							$boundaries_in_hectares = $squareMeters/10000.00;
 						}
 						
 						if ($geom_type == "MultiPolygon") {
@@ -76,8 +76,8 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 		
 								$geoJson = '{"type":"Polygon", "coordinates":' . json_encode($polygon) . '}';
 								$collection = $geometry->parseGeoJson($geoJson);
-								$squareMeters = $collection->getSquareMeters();
-								$boundaries_in_hectares = $boundaries_in_hectares + $squareMeters/10000;
+								$squareMeters = floatval($collection->getSquareMeters());
+								$boundaries_in_hectares = $boundaries_in_hectares + $squareMeters/10000.00;
 								\Drupal::messenger()->addMessage($geoJson, 'custom');
 																
 							}
@@ -88,7 +88,23 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 						
 						if ($boundaries_in_hectares > 0) {
 							// round the calculated total to two digits
-							$entity->field_size->value = round($boundaries_in_hectares,2);
+							// might round to closest int
+							
+							$length = strlen($boundaries_in_hectares);
+							$pos = strpos($boundaries_in_hectares, ".");
+							$num_of_dec_places = ($length - $pos) - 1;
+							
+							// rounded to full number; bug that needs to be fixed
+							
+							if ($num_of_dec_places > 2) {
+								$entity->field_size->value = round($boundaries_in_hectares, 2);
+								\Drupal::messenger()->addMessage("pos > 2", 'custom');
+							}
+							else {
+								\Drupal::messenger()->addMessage("pos less than 2", 'custom');
+								$entity->field_size->value = $boundaries_in_hectares;
+							}					
+
 						}
 												
 					}
