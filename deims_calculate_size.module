@@ -76,6 +76,15 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 							foreach ($polygon_array_keys as $key) {
 								$key_string = "$key";
 								$current_polygon = $list_of_polygons[$key]; // current polygon is an array
+								
+								// iterate through current polygon to fetch points and construct polygon?
+								
+								$geoJson = '{"type":"Polygon", "coordinates":' . json_encode($current_polygon) . '}';
+								$collection = $geometry->parseGeoJson($geoJson);
+								$squareMeters = $collection->getSquareMeters();
+								$boundaries_in_hectares = $boundaries_in_hectares + $squareMeters/10000;
+								\Drupal::messenger()->addMessage($geoJson, 'custom');
+								
 								\Drupal::messenger()->addMessage(serialize($current_polygon), 'custom');
 								// i can successfully iterate through the multipolygon and get each polygon
 								
