@@ -28,10 +28,22 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 			if ($entity->get('field_boundaries')->getValue()) {
 												
 				$current_boundaries_content = json_decode(\Drupal::service('geofield.geophp')->load($entity->get('field_boundaries')->value)->out('json'));
-				$old_boundaries_content = json_decode(\Drupal::service('geofield.geophp')->load($entity->original->get('field_boundaries')->value)->out('json'));
+				
+				// catch case if node is created for the first time
+				if ($entity->original) {
+					// check if there are already boundaries 
+					if ($entity->original->get('field_boundaries')->value) {
+						$old_boundaries_content = json_decode(\Drupal::service('geofield.geophp')->load($entity->original->get('field_boundaries')->value)->out('json'));
+					}
+					else {
+						$old_boundaries_content = "";
+					}
+				}
+				else {
+					$old_boundaries_content = "";
+				}
 				
 				\Drupal::messenger()->addMessage('and has boundaries', 'custom');
-				
 													
 				// check if boundaries have changed from last save
 				if ($current_boundaries_content != $old_boundaries_content) {
