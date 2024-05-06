@@ -6,8 +6,9 @@ use Drupal\geofield\GeoPHP\GeoPHPInterface;
 use Drupal\Core\Plugin\DefaultPluginManager;
 
 # this code requires laravel geometry: https://github.com/spinen/laravel-geometry
-# install with
+# install it with
 # sudo -HEu www-data php composer require spinen/laravel-geometry
+# this module uses the entity_presave() hook to run whenever a location or site is created or updated:
 # https://api.drupal.org/api/drupal/core%21lib%21Drupal%21Core%21Entity%21entity.api.php/function/hook_entity_presave/10
 
 /**
@@ -43,12 +44,11 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 						$geo = new geoPHP();
 						$mapper = new Spinen\Geometry\Support\TypeMapper();
 						$geometry = new Spinen\Geometry\Geometry($geo, $mapper);
-						
+						$collection = $geometry->parseGeoJson($current_boundaries_content);
 						$boundaries_in_hectares = 0;
 						
 						if ($geom_type == "Polygon") {
 							\Drupal::messenger()->addMessage('Boundaries are a Polygon', 'custom');
-							$collection = $geometry->parseGeoJson($current_boundaries_content);
 							$squareMeters = $collection->getSquareMeters();
 							$boundaries_in_hectares = $squareMeters/10000;
 						}
@@ -57,35 +57,25 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 							
 							\Drupal::messenger()->addMessage('Boundaries are a MultiPolygon', 'custom');
 							
-							$collection = $geometry->parseGeoJson($current_boundaries_content);
-											
-							$geojson_multipolygon = $collection->toGeoJson();
-							$geojson_array = json_decode($geojson_multipolygon);
+							$geojson_array = json_decode($collection->toGeoJson());
 							
-							$list_of_polygons = $geojson_array->coordinates;
-							$polygon_array_keys = array_keys($list_of_polygons);
-
 							// Loop for each polygon and adding up sizes
-							foreach ($polygon_array_keys as $key) {
+							foreach ($geojson_array->coordinates as $polygon) {
 		
-								$current_polygon = $list_of_polygons[$key]; // current polygon is an array
-								$geoJson = '{"type":"Polygon", "coordinates":' . json_encode($current_polygon) . '}';
+								$geoJson = '{"type":"Polygon", "coordinates":' . json_encode($polygon) . '}';
 								$collection = $geometry->parseGeoJson($geoJson);
 								$squareMeters = $collection->getSquareMeters();
 								$boundaries_in_hectares = $boundaries_in_hectares + $squareMeters/10000;
 								\Drupal::messenger()->addMessage($geoJson, 'custom');
-								
-								\Drupal::messenger()->addMessage(serialize($current_polygon), 'custom');
-								
+																
 							}
 							
-							$output = "$boundaries_in_hectares";
-							\Drupal::messenger()->addMessage($output, 'custom');
+							\Drupal::messenger()->addMessage("$boundaries_in_hectares", 'custom');
 									
 						}
 						
 						if ($boundaries_in_hectares > 0) {
-							// round to two digits
+							// round the calculated total to two digits
 							$entity->field_size->value = round($boundaries_in_hectares,2);
 						}
 												
