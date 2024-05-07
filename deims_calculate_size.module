@@ -60,7 +60,6 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 						$boundaries_in_hectares = 0.00;
 						
 						if ($geom_type == "Polygon") {
-							\Drupal::messenger()->addMessage('Boundaries are a Polygon', 'custom');
 							$squareMeters = floatval($collection->getSquareMeters());
 							$boundaries_in_hectares = $squareMeters/10000.00;
 						}
