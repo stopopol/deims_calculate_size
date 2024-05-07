@@ -87,7 +87,7 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 						}
 						
 						if ($boundaries_in_hectares > 0) {
-							$entity->field_size_ha->value = = $boundaries_in_hectares;	
+							$entity->field_size_ha->value = $boundaries_in_hectares;	
 						}
 												
 					}
