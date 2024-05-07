@@ -21,9 +21,7 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 		
 		// that are either sites or locations 
 		if ($entity->getType() == "site" || $entity->getType() == "observation_location") {
-			
-			\Drupal::messenger()->addMessage('Node is either site or location', 'custom');
-			
+						
 			// boundaries field needs to be filled
 			if ($entity->get('field_boundaries')->getValue()) {
 												
@@ -42,13 +40,15 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 				else {
 					$old_boundaries_content = "";
 				}
-				
-				\Drupal::messenger()->addMessage('and has boundaries', 'custom');
+								
+				// migration section -> check if size_ha field hasn't been calculated yet
+				$size_field_filled = $entity->field_size_ha->value;
+				// this part above and the if clause below can be removed/modified eventually when all sites have new size values
 													
 				// check if boundaries have changed from last save
-				if ($current_boundaries_content != $old_boundaries_content) {
+				if ($current_boundaries_content != $old_boundaries_content || !$size_field_filled ) {
+				// if ($current_boundaries_content != $old_boundaries_content) {
 						
-					\Drupal::messenger()->addMessage('Boundaries have changed', 'custom');
 					$geom_type = $entity->get('field_boundaries')->geo_type;
 					
 					if ($geom_type == "Polygon" || $geom_type == "MultiPolygon") {
@@ -66,24 +66,19 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 						}
 						
 						if ($geom_type == "MultiPolygon") {
-							
-							\Drupal::messenger()->addMessage('Boundaries are a MultiPolygon', 'custom');
-							
+														
 							$geojson_array = json_decode($collection->toGeoJson());
 							
-							// Loop for each polygon and adding up sizes
+							// Loop through each polygon and adding up size values
 							foreach ($geojson_array->coordinates as $polygon) {
 		
 								$geoJson = '{"type":"Polygon", "coordinates":' . json_encode($polygon) . '}';
 								$collection = $geometry->parseGeoJson($geoJson);
 								$squareMeters = floatval($collection->getSquareMeters());
 								$boundaries_in_hectares = $boundaries_in_hectares + $squareMeters/10000.00;
-								\Drupal::messenger()->addMessage($geoJson, 'custom');
 																
 							}
-							
-							\Drupal::messenger()->addMessage("$boundaries_in_hectares", 'custom');
-									
+																
 						}
 						
 						if ($boundaries_in_hectares > 0) {
