@@ -52,7 +52,7 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 					$geom_type = $entity->get('field_boundaries')->geo_type;
 					
 					if ($geom_type == "Polygon" || $geom_type == "MultiPolygon") {
-						
+												
 						$geo = new geoPHP();
 						$mapper = new Spinen\Geometry\Support\TypeMapper();
 						$geometry = new Spinen\Geometry\Geometry($geo, $mapper);
@@ -79,6 +79,9 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 							}
 																
 						}
+						
+						// for whatever reason sometimes negative size values are returned
+						$boundaries_in_hectares = abs($boundaries_in_hectares);
 						
 						if ($boundaries_in_hectares > 0) {
 							$entity->field_size_ha->value = $boundaries_in_hectares;
