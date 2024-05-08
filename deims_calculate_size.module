@@ -19,9 +19,9 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 	// only called when nodes are saved
 	if ($entity->getEntityTypeId() == 'node') {
 		
-		// that are either sites or locations 
+		// that are either sites or locations
 		if ($entity->getType() == "site" || $entity->getType() == "observation_location") {
-						
+									
 			// boundaries field needs to be filled
 			if ($entity->get('field_boundaries')->getValue()) {
 												
@@ -40,14 +40,9 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 				else {
 					$old_boundaries_content = "";
 				}
-								
-				// migration section -> check if size_ha field hasn't been calculated yet
-				$size_field_filled = $entity->field_size_ha->value;
-				// this part above and the if clause below can be removed/modified eventually when all sites have new size values
-													
+																				
 				// check if boundaries have changed from last save
-				if ($current_boundaries_content != $old_boundaries_content || !$size_field_filled ) {
-				// if ($current_boundaries_content != $old_boundaries_content) {
+				if ($current_boundaries_content != $old_boundaries_content) {
 						
 					$geom_type = $entity->get('field_boundaries')->geo_type;
 					
@@ -85,10 +80,6 @@ function deims_calculate_size_entity_presave(Drupal\Core\Entity\EntityInterface 
 						
 						if ($boundaries_in_hectares > 0) {
 							$entity->field_size_ha->value = $boundaries_in_hectares;
-							// the part below can be removed/modified eventually when all sites have new size values
-							if ($entity->getType() == "site") {
-								$entity->field_size->value = $boundaries_in_hectares;
-							}
 						}
 												
 					}
