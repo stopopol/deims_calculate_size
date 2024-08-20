@@ -2,6 +2,6 @@
     "name": "stopopol/deims_calculate_size",
     "description": "renders site geodata on DEIMS-SDR in one map",
     "type": "drupal-module",
-    "homepage": "https://github.com/stopopol/deims_calculate_size",
+    "homepage": "https://github.com/stopopol/deims_calculate_size"
 }
 
